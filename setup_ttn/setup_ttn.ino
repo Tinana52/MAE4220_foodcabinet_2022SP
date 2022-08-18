@@ -34,6 +34,9 @@ float calibration_factor_middle (1350.0); //This value is obtained using the Spa
 float calibration_factor_bottom (540.0); //This value is obtained using the SparkFun_HX711_Calibration sketch
 int zero_factor; //This large value is obtained using the SparkFun_HX711_Calibration sketch
 
+/////// Measure voltage via pin A7////////////////
+#define VBATPIN A7
+
 #define LOADCELL_DOUT_PIN_bottom  11
 #define LOADCELL_SCK_PIN_bottom  12
 
@@ -52,6 +55,7 @@ struct __attribute__((__packed__)) pkt_fmt{
   float top_weight;
   float middle_weight;
   float bottom_weight;
+  float battery_voltage;
 };
 pkt_fmt myPkt;
 
@@ -121,6 +125,12 @@ void setup() {
 //    Serial.println("Press + or a to increase calibration factor");
 //    Serial.println("Press - or z to decrease calibration factor");
 
+    /////// Measure voltage via pin A7////////////////
+    float measuredvbat = analogRead(VBATPIN);
+    measuredvbat *= 2; // we divided by 2, so multiply back 
+    measuredvbat *= 3.3; // Multiply by 3.3V, our reference voltage 
+    measuredvbat /= 1024; // convert to voltage
+    
     loadcell_top.begin(LOADCELL_DOUT_PIN_top, LOADCELL_SCK_PIN_top);
     loadcell_middle.begin(LOADCELL_DOUT_PIN_middle, LOADCELL_SCK_PIN_middle);
     loadcell_bottom.begin(LOADCELL_DOUT_PIN_bottom, LOADCELL_SCK_PIN_bottom);
@@ -155,6 +165,7 @@ void setup() {
     myPkt.top_weight=loadcell_top.get_units();
     myPkt.middle_weight=loadcell_middle.get_units();
     myPkt.bottom_weight=loadcell_bottom.get_units();
+    myPkt.battery_voltage=measuredvbat;
     myLoRaWAN.SendBuffer((uint8_t *) &myPkt, sizeof(myPkt), myStatusCallback, NULL, false, 1);
 }
 
@@ -169,6 +180,7 @@ void loop() {
       myPkt.top_weight=loadcell_top.get_units();
       myPkt.middle_weight=loadcell_middle.get_units();
       myPkt.bottom_weight=loadcell_bottom.get_units();
+      myPkt.battery_voltage=(((analogRead(VBATPIN) * 2) * 3.3) / 1024);
       //messageBuffer[0]++;     
       myLoRaWAN.SendBuffer((uint8_t *) &myPkt, sizeof(myPkt), myStatusCallback, NULL, false, 1);
       lastTime = millis();
