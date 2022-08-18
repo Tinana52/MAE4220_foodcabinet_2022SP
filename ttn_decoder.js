@@ -1,3 +1,5 @@
+
+
 function decodeUplink(input) {
   //initialize an object to store output data
   function byte_to_float(bytes){
@@ -16,10 +18,17 @@ function decodeUplink(input) {
     return f;
   }
   var data = {}
+  //create a field “myint16” for the data object
+  //and then put together the 1st two 8-bit values in the input to make a 16-bit value
+  //data.mystring = stringFromBytes(input.bytes.slice(0,4));
+  //data.mynum = input.bytes[4] + (input.bytes[5]<<8) + (input.bytes[6]<<16) + (input.bytes[7]<<24);
+  //data.last = input.bytes[8] + (input.bytes[9]<<8);
+  //return the output data along with any errors or warnings
   data.name = 0
   data.top_weight = byte_to_float(input.bytes.slice(0,4));
   data.middle_weight = byte_to_float(input.bytes.slice(4,8));
   data.bottom_weight = byte_to_float(input.bytes.slice(8,12));
+  data.battery_voltage = byte_to_float(input.bytes.slice(12,16));
   
   return {
     data: data,
